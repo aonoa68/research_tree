@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { forceCollide, forceSimulation, forceX, forceY, type Simulation, type SimulationNodeDatum } from "d3-force";
-import { ancestorIds, branchPath, createLayout, height, width, type TreePoint } from "@/lib/tree-layout";
+import { ancestorIds, branchPath, tendrilPath, createLayout, height, width, type TreePoint } from "@/lib/tree-layout";
 
 type MovingPoint = TreePoint & SimulationNodeDatum;
 interface Transform { x: number; y: number; scale: number }
@@ -18,7 +18,6 @@ export function ResearchTree({ visibleIds, selectedId, onSelect }: { visibleIds:
   const svgRef = useRef<SVGSVGElement>(null);
   const simulation = useRef<Simulation<MovingPoint, undefined> | null>(null);
   const drag = useRef<DragState | null>(null);
-  const ignoreClick = useRef(false);
   const pointById = useMemo(() => new Map(points.map(point => [point.id, point])), [points]);
   const ancestors = useMemo(() => ancestorIds(selectedId), [selectedId]);
 
@@ -60,7 +59,6 @@ export function ResearchTree({ visibleIds, selectedId, onSelect }: { visibleIds:
     const point = coordinates(event);
     const node = id ? pointById.get(id) : undefined;
     drag.current = { pointerId: event.pointerId, id, startX: point.x, startY: point.y, x: node?.x ?? transform.x, y: node?.y ?? transform.y, moved: false };
-    ignoreClick.current = false;
     event.currentTarget.setPointerCapture(event.pointerId);
     if (node) setRunning(false);
   }
@@ -79,7 +77,6 @@ export function ResearchTree({ visibleIds, selectedId, onSelect }: { visibleIds:
   function pointerUp(event: ReactPointerEvent<SVGSVGElement>) {
     const current = drag.current;
     if (!current || current.pointerId !== event.pointerId) return;
-    ignoreClick.current = current.moved;
     if (!current.moved && current.id && visibleIds.has(current.id)) onSelect(current.id);
     drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
@@ -95,30 +92,39 @@ export function ResearchTree({ visibleIds, selectedId, onSelect }: { visibleIds:
 
   return <>
     <svg className="research-tree" ref={svgRef} viewBox={`0 0 ${width} ${height}`} aria-labelledby="tree-title tree-description" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { drag.current = null; }}>
-      <title id="tree-title">小野原彩香の研究系統樹</title><desc id="tree-description">下から研究者、文化進化理論、研究テーマ、論文・発表へと枝分かれします。各節点はEnterキーまたはスペースキーで選べます。同じ内容を「一覧で読む」でも確認できます。</desc>
-      <defs><radialGradient id="tree-light"><stop stopColor="#b59c62" stopOpacity=".09"/><stop offset="1" stopColor="#b59c62" stopOpacity="0"/></radialGradient><linearGradient id="branch-gold" x1="0" y1="1" x2="0" y2="0"><stop stopColor="#71603e"/><stop offset="1" stopColor="#cab680"/></linearGradient></defs>
-      <g aria-hidden="true" className="tree-atmosphere"><ellipse cx="550" cy="330" rx="510" ry="330" fill="url(#tree-light)"/><circle cx="560" cy="360" r="258"/><circle cx="560" cy="360" r="325"/>{Array.from({ length: 62 }, (_, i) => <circle key={i} cx={40 + ((i * 173) % 1040)} cy={70 + ((i * 137) % 480)} r={i % 7 === 0 ? 1.7 : .7} className="dust"/>)}<path d="M450 672 Q560 655 670 672 M492 680 Q560 663 628 680" className="root-lines"/></g>
+      <title id="tree-title">小野原彩香の研究系統樹</title><desc id="tree-description">根の研究者から、文化進化理論、5つの研究領域、論文・発表へと枝分かれします。枝と葉を選ぶと詳細が開きます。Tabで移動してEnterまたはSpaceでも選択できます。「論文一覧」では同じ内容を文章で読めます。</desc>
+      <defs>
+        <linearGradient id="branch-gold" gradientUnits="userSpaceOnUse" x1="560" y1="830" x2="460" y2="40"><stop stopColor="#6c5030"/><stop offset=".3" stopColor="#b28d52"/><stop offset=".7" stopColor="#d9b776"/><stop offset="1" stopColor="#ae884b"/></linearGradient>
+        <linearGradient id="leaf-gold" x1="0" y1="1" x2="1" y2="0"><stop stopColor="#946a38"/><stop offset=".5" stopColor="#e3c686"/><stop offset="1" stopColor="#bb9554"/></linearGradient>
+        <radialGradient id="tree-light"><stop stopColor="#a58143" stopOpacity=".08"/><stop offset="1" stopColor="#a58143" stopOpacity="0"/></radialGradient>
+      </defs>
+      <g aria-hidden="true" className="tree-atmosphere"><ellipse cx="560" cy="420" rx="470" ry="430" fill="url(#tree-light)"/>{Array.from({ length: 86 }, (_, i) => <circle key={i} cx={45 + ((i * 173) % 1030)} cy={32 + ((i * 137) % 770)} r={i % 9 === 0 ? 1.25 : .55} fill="#c8aa75" opacity={i % 9 === 0 ? .36 : .2}/>)}</g>
       <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
-        <g fill="none" strokeLinecap="round" aria-hidden="true">{layout.links.map(link => {
+        <g aria-hidden="true" fill="none" stroke="url(#branch-gold)" strokeLinecap="round" className="root-ornament">{[-1, 1].flatMap(side => [0, 1, 2, 3, 4].map(i => <path key={`${side}-${i}`} d={`M560 757 C${560 + side * (14 + i * 4)} 801, ${560 + side * (48 + i * 19)} ${799 + i * 7}, ${560 + side * (68 + i * 24)} ${812 + i * 7}`} strokeWidth={2.5 - i * .35}/>))}</g>
+        <g fill="none" strokeLinecap="round" aria-hidden="true">{layout.links.map((link, index) => {
           const source = pointById.get(link.source)!, target = pointById.get(link.target)!;
           const active = visibleIds.has(link.target), highlighted = ancestors.has(link.target) && ancestors.has(link.source);
-          return <path key={`${link.source}-${link.target}`} d={branchPath(source, target)} stroke={highlighted ? "#f0d39a" : "url(#branch-gold)"} strokeWidth={link.level === 1 ? 7 : link.level === 2 ? 3.2 : link.level === 3 ? 1.6 : .85} opacity={active ? highlighted ? 1 : .6 : .1}/>;
+          const side = target.x < source.x ? -1 : 1;
+          return <g key={`${link.source}-${link.target}`} opacity={active ? selectedId && !highlighted ? .48 : 1 : .08}>
+            <path d={branchPath(source, target)} stroke={highlighted ? "#e7c88c" : "url(#branch-gold)"} strokeWidth={link.level === 1 ? 19 : link.level === 2 ? 8.5 : link.level === 3 ? 3.8 : 1.25}/>
+            {link.level < 4 && <><path d={branchPath(source, target)} stroke="#f6d797" strokeWidth=".65" opacity=".5"/>
+              <path d={tendrilPath(source, target, side)} stroke="url(#branch-gold)" strokeWidth={link.level < 3 ? 2.8 : 1.5}/>
+              {link.level === 2 && <path d={tendrilPath({x: source.x * .32 + target.x * .68, y: source.y * .32 + target.y * .68}, target, -side)} stroke="url(#branch-gold)" strokeWidth="1.1"/>}</>}
+            {link.level === 4 && index % 2 === 0 && <path d={tendrilPath(source, target, side)} stroke="url(#branch-gold)" strokeWidth=".8" opacity=".7"/>}
+          </g>;
         })}</g>
         {points.map(point => {
           const visible = visibleIds.has(point.id), selected = selectedId === point.id, isPaper = point.kind === "paper";
-          const radius = isPaper ? 5 + (Number(point.paper!.year) - 2010) / 7 : point.level < 2 ? 12 : 8;
-          const name = point.name;
-          const labelLines = name.length > 8 && !isPaper ? [name.slice(0, Math.ceil(name.length / 2)), name.slice(Math.ceil(name.length / 2))] : [name];
           const accessibleName = isPaper ? `${point.paper!.year}年 ${point.paper!.title}` : `${point.name}の研究を表示`;
-          return <g key={point.id} data-node-id={point.id} role="button" aria-label={accessibleName} aria-pressed={selected} aria-disabled={!visible} tabIndex={visible ? 0 : -1} className={`tree-node ${isPaper ? "is-paper" : "is-topic"}${selected ? " is-selected" : ""}`} transform={`translate(${point.x} ${point.y})`} opacity={visible ? 1 : .16} style={{ pointerEvents: visible ? "auto" : "none" }} onClick={event => { if (event.detail === 0 && !ignoreClick.current && visible) onSelect(point.id); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(point.id); } }}>
-            <title>{accessibleName}</title><circle r="23" fill="transparent" stroke="none" className="hit-area"/><circle className="focus-ring" r="22" fill="none" stroke="#f0d39a"/>{selected && <circle r="20" fill="#d4b77d" fillOpacity=".12" stroke="#d4b77d" strokeOpacity=".5"/>}
-            {isPaper ? <><path d="M0 -11 Q14 -7 0 11 Q-14 7 0 -11Z" fill={`hsl(${40 + (Number(point.paper!.year) - 2010) * 1.5} 38% ${53 + (Number(point.paper!.year) - 2010) * 1.5}%)`} transform="rotate(32)"/><path d="M-5 8 5-8" stroke="#172b28" strokeWidth=".7"/></> : <><circle r={radius + 4} fill="#192d29" stroke="#ad925d" strokeOpacity=".38"/><circle r={radius} fill={point.level < 2 ? "#b8a06b" : "#1d332e"} stroke="#d4ba82" strokeWidth="1.3"/>{point.level < 2 && <path d="M-4 0H4M0-4V4" stroke="#1d332e"/>}</>}
-            <text textAnchor="middle" className="node-label" y={isPaper ? -22 : radius + 24}>{labelLines.map((line, index) => <tspan key={line} x="0" dy={index ? "1.4em" : 0}>{line}</tspan>)}</text>
+          return <g key={point.id} data-node-id={point.id} role="button" aria-label={accessibleName} aria-pressed={selected} aria-disabled={!visible} tabIndex={visible ? 0 : -1} className={`tree-node ${isPaper ? "is-paper" : "is-topic"} level-${point.level}${selected ? " is-selected" : ""}`} transform={`translate(${point.x} ${point.y})`} opacity={visible ? 1 : .12} style={{ pointerEvents: visible ? "auto" : "none" }} onClick={event => { if (event.detail === 0 && visible) onSelect(point.id); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(point.id); } }}>
+            <title>{accessibleName}</title><circle r="27" fill="transparent" stroke="none" className="hit-area"/><circle className="focus-ring" r="24" fill="#d4b77d" fillOpacity=".08" stroke="#e0bf7b"/>
+            {isPaper ? <g className="leaf-mark" transform={`rotate(${point.x < 560 ? -32 : 32})`}><path d="M0 -18 C17 -11 17 5 0 18 C-17 5 -17 -11 0 -18Z" fill="url(#leaf-gold)"/><path d="M0 14V-14M0 6 6 0M0 0 -6-6" stroke="#624f30" strokeWidth=".8" fill="none"/></g> : <><circle r={point.level < 2 ? 8 : 6} fill="#171d1b" stroke="#dfbc79" strokeWidth="1.5"/><circle r="2" fill="#d4b77d"/></>}
+            <text textAnchor="middle" className="node-label" y={isPaper ? -28 : point.level === 0 ? 41 : 32}>{point.name}</text>
+            {!isPaper && point.level === 2 && <text textAnchor="middle" className="branch-number" y="-17">{String(Number(point.id.split("-").at(-1))).padStart(2, "0")}</text>}
           </g>;
         })}
       </g>
     </svg>
-    <div className="tree-tools"><div className="zoom-tools" role="group" aria-label="樹の表示倍率"><button type="button" onClick={() => zoom(1 / 1.2)} disabled={transform.scale <= .65} aria-label="縮小">−</button><span>{Math.round(transform.scale * 100)}%</span><button type="button" onClick={() => zoom(1.2)} disabled={transform.scale >= 2.8} aria-label="拡大">＋</button><button type="button" onClick={() => setTransform(initialTransform)} aria-label="表示をリセット">↺</button></div><div className="motion-tools"><button type="button" disabled={reducedMotion} aria-pressed={running} onClick={() => setRunning(previous => !previous)}>{running ? "配置を固定" : "配置を動かす"}</button><button type="button" onClick={resetLayout}>配置を戻す</button></div></div>
-    {reducedMotion && <p className="motion-note">端末の設定に合わせて、動きを停止しています。</p>}
+    <div className="tree-tools"><div className="zoom-tools" role="group" aria-label="樹の表示倍率"><button type="button" onClick={() => zoom(1 / 1.2)} disabled={transform.scale <= .65} aria-label="縮小">−</button><button type="button" onClick={() => zoom(1.2)} disabled={transform.scale >= 2.8} aria-label="拡大">＋</button><button type="button" onClick={resetLayout} aria-label="樹の配置と倍率を戻す" title="全体を表示">↺</button></div><details className="motion-tools"><summary>動き</summary><button type="button" disabled={reducedMotion} aria-pressed={running} onClick={() => setRunning(previous => !previous)}>{reducedMotion ? "端末の設定で停止中" : running ? "配置を固定" : "配置を動かす"}</button></details></div>
   </>;
 }

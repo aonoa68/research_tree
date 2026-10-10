@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ResearchTree } from "./research-tree";
-import { allNodes, branches, coverage, descendantPaperIds, filterPapers, papers, theory, type IndexedPaper } from "@/lib/research";
+import { allNodes, branches, coverage, descendantPaperIds, filterPapers, papers, type IndexedPaper } from "@/lib/research";
 import { ancestorIds } from "@/lib/tree-layout";
 
 function PaperMeta({ paper }: { paper: IndexedPaper }) {
@@ -14,46 +14,54 @@ export function ResearchExplorer() {
   const [query, setQuery] = useState("");
   const [branchId, setBranchId] = useState("all");
   const [throughYear, setThroughYear] = useState(coverage.to);
-  const [selectedId, setSelectedId] = useState(theory.id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const returnToTree = useRef(false);
-  useEffect(() => {
-    if (view === "tree" && returnToTree.current) {
-      returnToTree.current = false;
-      headingRef.current?.focus({ preventScroll: true });
-      headingRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
-    }
-  }, [view]);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const filtered = useMemo(() => filterPapers({ query, branchId, throughYear }), [query, branchId, throughYear]);
   const visibleIds = useMemo(() => {
     const ids = new Set<string>();
     filtered.forEach(paper => ancestorIds(paper.id).forEach(id => ids.add(id)));
     return ids;
   }, [filtered]);
-  const selectedPaper = filtered.find(paper => paper.id === selectedId);
-  const selectedResearch = allNodes.find(node => node.id === selectedId && visibleIds.has(node.id)) ?? theory;
-  const descendants = new Set(descendantPaperIds(selectedResearch));
+  const selectedPaper = papers.find(paper => paper.id === selectedId);
+  const selectedResearch = allNodes.find(node => node.id === selectedId);
+  const descendants = new Set(selectedResearch ? descendantPaperIds(selectedResearch) : []);
   const selectedPapers = filtered.filter(paper => descendants.has(paper.id));
   const hasFilters = Boolean(query || branchId !== "all" || throughYear < coverage.to);
 
-  function resetFilters() { setQuery(""); setBranchId("all"); setThroughYear(coverage.to); setSelectedId(theory.id); }
-  function chooseBranch(id: string) { setBranchId(id); setSelectedId(id === "all" ? theory.id : id); }
-  function showInTree(id: string) { returnToTree.current = true; setSelectedId(id); setView("tree"); }
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (selectedId && view === "tree") {
+      if (!dialog.open) dialog.showModal();
+      const previous = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = previous; };
+    }
+    if (dialog.open) dialog.close();
+  }, [selectedId, view]);
 
-  return <section className="explorer-section wrap" id="explore" aria-labelledby="explorer-title">
-    <div className="explorer-heading"><div><p className="eyebrow">01 / EXPLORE THE CONNECTIONS</p><h2 id="explorer-title" ref={headingRef} tabIndex={-1}>研究を辿る。</h2></div><div className="view-switch" role="group" aria-label="研究の表示方法"><button type="button" aria-pressed={view === "tree"} onClick={() => setView("tree")}><span aria-hidden="true">✳</span> 樹で見る</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}><span aria-hidden="true">☰</span> 一覧で読む</button></div></div>
-    <div className="filters">
-      <label className="search-field"><span className="sr-only">論文・テーマを検索</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input type="search" placeholder="論文・テーマを検索" value={query} onChange={event => { setQuery(event.target.value); setSelectedId(theory.id); }}/></label>
-      <label className="year-filter"><span>表示する年代 <output>{coverage.from}–{throughYear}</output></span><input aria-label="表示する年代の上限" type="range" min={coverage.from} max={coverage.to} step="1" value={throughYear} onChange={event => setThroughYear(Number(event.target.value))}/></label>
-      <div className="result-count" role="status" aria-live="polite"><strong>{filtered.length}</strong> / {papers.length} 件{hasFilters && <button type="button" onClick={resetFilters}>条件をクリア</button>}</div>
+  function resetFilters() { setQuery(""); setBranchId("all"); setThroughYear(coverage.to); }
+  function showInTree(id: string) { setView("tree"); setSelectedId(id); headingRef.current?.scrollIntoView({ block: "start", behavior: "instant" }); }
+
+  return <section className="explorer-section" id="explore" aria-labelledby="explorer-title">
+    <div className="explorer-heading">
+      <div className="atlas-title"><p className="eyebrow">THE TREE OF RESEARCH</p><h1 id="explorer-title" ref={headingRef} tabIndex={-1}>研究の樹</h1><p className="atlas-subtitle">言語学、文化進化、空間分析。</p></div>
+      <div className="explorer-actions"><span className="archive-years">{coverage.from} — {coverage.to}</span><div className="view-switch" role="group" aria-label="研究の表示方法"><button type="button" aria-pressed={view === "tree"} onClick={() => setView("tree")}>系統樹</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>論文一覧 <span>{papers.length}</span></button></div><button type="button" className="filter-toggle" aria-expanded={filtersOpen} aria-controls="research-filters" onClick={() => setFiltersOpen(!filtersOpen)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6H18M2 14H18"/><circle cx="7" cy="6" r="2"/><circle cx="13" cy="14" r="2"/></svg><span>絞り込み</span>{hasFilters && <i aria-label="条件を適用中"/>}</button></div>
     </div>
-    <div className="branch-nav" role="group" aria-label="研究の枝で絞り込む"><button type="button" aria-pressed={branchId === "all"} onClick={() => chooseBranch("all")}>すべての枝</button>{branches.map((branch, index) => <button type="button" key={branch.id} aria-pressed={branchId === branch.id} onClick={() => chooseBranch(branch.id)}><span>{String(index + 1).padStart(2, "0")}</span>{branch.name}</button>)}</div>
-    {view === "tree" ? <div className="tree-workspace">
-      <div className="tree-frame"><div className="tree-caption"><span>THE LIVING ARCHIVE</span><span>{coverage.from} — {throughYear}</span></div><ResearchTree visibleIds={visibleIds} selectedId={selectedPaper?.id ?? selectedResearch.id} onSelect={setSelectedId}/><p className="tree-help">枝・葉を選ぶと詳細を表示。背景や節点をドラッグして移動できます。</p><div className="tree-legend"><span><i className="legend-branch"/>研究テーマ</span><span><i className="legend-paper"/>論文・発表</span><span>色の濃淡は発表年</span></div></div>
-      <aside className="detail-panel" aria-label="選択した研究の詳細">
-        {selectedPaper ? <><button type="button" className="back-button" onClick={() => setSelectedId(selectedPaper.topicId)}>← {selectedPaper.topicName}</button><p className="eyebrow">PUBLICATION / {selectedPaper.year}</p><h3 className="selected-paper-title">{selectedPaper.title}</h3><PaperMeta paper={selectedPaper}/><div className="paper-path"><span>研究のつながり</span><ol>{selectedPaper.path.map(item => <li key={item}>{item}</li>)}</ol></div><a className="scholar-link" href={`https://scholar.google.com/scholar?q=${encodeURIComponent(selectedPaper.title)}`} target="_blank" rel="noreferrer">このタイトルで文献を探す ↗</a></> : <><p className="eyebrow">SELECTED BRANCH</p><h3>{selectedResearch.name}</h3><p className="detail-description">{selectedResearch.description}</p><p className="detail-total">この枝の論文・発表 <strong>{selectedPapers.length}</strong></p><div className="detail-papers">{selectedPapers.map(paper => <button type="button" className="paper-preview" key={paper.id} onClick={() => setSelectedId(paper.id)}><span className="paper-year">{paper.year}</span><span>{paper.title}</span><span className="paper-arrow" aria-hidden="true">↗</span></button>)}{!selectedPapers.length && <p className="empty-message">条件に合う論文がありません。検索語や年代を変更してください。</p>}</div></>}
-      </aside>
-    </div> : <div className="paper-list"><div className="list-heading"><h3>論文・発表の一覧</h3><span>発表年の新しい順</span></div>{filtered.map(paper => <article className="publication-row" key={paper.id}><span className="publication-year">{paper.year}</span><div><p className="publication-topic">{paper.branchName}{paper.topicName !== paper.branchName ? ` / ${paper.topicName}` : ""}</p><h4>{paper.title}</h4><PaperMeta paper={paper}/></div><button type="button" aria-label={`${paper.title} を樹で見る`} onClick={() => showInTree(paper.id)}>樹で見る <span aria-hidden="true">↗</span></button></article>)}{!filtered.length && <div className="empty-list"><p>条件に合う論文がありません。</p><button type="button" onClick={resetFilters}>条件をクリアして、すべて表示</button></div>}</div>}
-    <p className="explorer-footnote">テーマ間の関係を示す概念図です。枝の長さ・位置は定量的な距離を表しません。<span>掲載データ：{coverage.from}–{coverage.to}</span></p>
+    <div className="filters" id="research-filters" hidden={!filtersOpen}>
+      <label className="search-field"><span>論文・テーマ</span><input type="search" placeholder="キーワードで探す" value={query} onChange={event => setQuery(event.target.value)}/></label>
+      <label className="year-filter"><span>収録年代 <output>{coverage.from}–{throughYear}</output></span><input aria-label="表示する年代の上限" type="range" min={coverage.from} max={coverage.to} step="1" value={throughYear} onChange={event => setThroughYear(Number(event.target.value))}/></label>
+      <div className="result-count" role="status" aria-live="polite">{filtered.length} / {papers.length} 件{hasFilters && <button type="button" onClick={resetFilters}>条件をクリア</button>}</div>
+    </div>
+    {view === "tree" ? <div className="tree-stage"><ResearchTree visibleIds={visibleIds} selectedId={selectedId ?? ""} onSelect={setSelectedId}/><div className="stage-note"><span className="note-line"/><p>枝に研究テーマを、葉に論文を。<br/>気になるところから、辿ってください。</p></div>{!filtered.length && <div className="tree-empty"><p>条件に合う論文がありません。</p><button type="button" onClick={resetFilters}>すべて表示する</button></div>}</div> : <div className="paper-list content-width"><div className="list-heading"><p>論文・発表 <span>{filtered.length}件</span></p><span>発表年の新しい順</span></div>{filtered.map(paper => <article className="publication-row" key={paper.id}><span className="publication-year">{paper.year}</span><div><p className="publication-topic">{paper.branchName}{paper.topicName !== paper.branchName ? ` / ${paper.topicName}` : ""}</p><h2>{paper.title}</h2><PaperMeta paper={paper}/></div><button type="button" aria-label={`${paper.title} を樹で見る`} onClick={() => showInTree(paper.id)}>樹で見る ↗</button></article>)}{!filtered.length && <div className="empty-list"><p>条件に合う論文がありません。</p><button type="button" onClick={resetFilters}>条件をクリアして、すべて表示</button></div>}</div>}
+    <div className="branch-nav" role="group" aria-label="研究領域で絞り込む"><button type="button" aria-pressed={branchId === "all"} onClick={() => setBranchId("all")}>すべての枝</button>{branches.map((branch, index) => <button type="button" key={branch.id} aria-pressed={branchId === branch.id} onClick={() => setBranchId(branch.id)}><span>{String(index + 1).padStart(2, "0")}</span>{branch.name}</button>)}</div>
+    <p className="explorer-footnote"><span>研究テーマと業績のつながりを表す概念図</span><span aria-live="polite">{hasFilters ? `${filtered.length} / ` : ""}{papers.length}件の論文・発表 · {coverage.from}–{throughYear}</span></p>
+    <dialog ref={dialogRef} className="detail-dialog" aria-labelledby="detail-title" onCancel={() => setSelectedId(null)} onClose={() => setSelectedId(null)} onClick={event => { if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) setSelectedId(null); } }}>
+      <div className="detail-panel"><button type="button" className="close-detail" aria-label="詳細を閉じる" onClick={() => setSelectedId(null)}>閉じる <span aria-hidden="true">×</span></button>
+        {selectedPaper ? <><button type="button" className="back-button" onClick={() => setSelectedId(selectedPaper.topicId)}>← {selectedPaper.topicName}</button><p className="eyebrow">PUBLICATION / {selectedPaper.year}</p><h2 id="detail-title" className="selected-paper-title">{selectedPaper.title}</h2><PaperMeta paper={selectedPaper}/><div className="paper-path"><span>この論文につながる枝</span><ol>{selectedPaper.path.map(item => <li key={item}>{item}</li>)}</ol></div><a className="scholar-link" href={`https://scholar.google.com/scholar?q=${encodeURIComponent(selectedPaper.title)}`} target="_blank" rel="noreferrer">このタイトルで文献を探す ↗</a></> : selectedResearch ? <><p className="eyebrow">RESEARCH THEME</p><h2 id="detail-title">{selectedResearch.name}</h2><p className="detail-description">{selectedResearch.description}</p><p className="detail-total">この枝の論文・発表 <span>{selectedPapers.length}</span></p><div className="detail-papers">{selectedPapers.map(paper => <button type="button" className="paper-preview" key={paper.id} onClick={() => setSelectedId(paper.id)}><span className="paper-year">{paper.year}</span><span>{paper.title}</span><span aria-hidden="true">↗</span></button>)}{!selectedPapers.length && <p className="empty-message">現在の条件に合う論文はありません。</p>}</div></> : <h2 id="detail-title">研究の詳細</h2>}
+      </div>
+    </dialog>
   </section>;
 }
