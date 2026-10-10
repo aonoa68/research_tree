@@ -12,10 +12,10 @@ export const height = 860;
 // Deliberate, asymmetric boughs; the coordinates carry no statistical meaning.
 const boughs = [
   { x: 290, y: 525, tips: [[130, 365], [225, 235], [360, 145]] },
-  { x: 810, y: 515, tips: [[800, 155], [925, 270], [1010, 405]] },
+  { x: 810, y: 515, tips: [[800, 155], [925, 270], [1010, 448]] },
   { x: 440, y: 335, tips: [] },
   { x: 585, y: 215, tips: [] },
-  { x: 700, y: 375, tips: [] },
+  { x: 700, y: 405, tips: [] },
 ];
 
 export function createLayout(): { points: TreePoint[]; links: TreeLink[] } {
