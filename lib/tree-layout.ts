@@ -1,21 +1,22 @@
-import { allNodes, branches, researchTree, type Paper, type ResearchNode } from "./research";
+import { allNodes, branches, researchTree, type Paper, type Project, type ResearchNode } from "./research";
 
 export interface TreePoint {
-  id: string; name: string; kind: "research" | "paper"; level: number;
+  id: string; name: string; kind: "research" | "paper" | "project"; level: number;
   x: number; y: number; anchorX: number; anchorY: number;
-  branchId?: string; paper?: Paper;
+  branchId?: string; paper?: Paper; project?: Project;
 }
 export interface TreeLink { source: string; target: string; level: number }
-export const width = 1120;
-export const height = 860;
+export const width = 1600;
+export const height = 1180;
 
 // Deliberate, asymmetric boughs; the coordinates carry no statistical meaning.
 const boughs = [
-  { x: 290, y: 525, tips: [[130, 365], [225, 235], [360, 145]] },
-  { x: 810, y: 515, tips: [[800, 155], [925, 270], [1010, 448]] },
-  { x: 440, y: 335, tips: [] },
-  { x: 585, y: 215, tips: [] },
-  { x: 700, y: 405, tips: [] },
+  { x: 350, y: 790, tips: [[165, 595], [290, 380], [415, 170], [150, 810]] },
+  { x: 1220, y: 880, tips: [[1230, 170], [1390, 335], [1440, 555], [1110, 460], [1240, 700], [1470, 835]] },
+  { x: 510, y: 560, tips: [] },
+  { x: 745, y: 510, tips: [] },
+  { x: 1000, y: 645, tips: [] },
+  { x: 800, y: 785, tips: [[600, 250], [825, 190], [1040, 240]] },
 ];
 
 export function createLayout(): { points: TreePoint[]; links: TreeLink[] } {
@@ -28,20 +29,22 @@ export function createLayout(): { points: TreePoint[]; links: TreeLink[] } {
       positions.set(child.id, { x: tip?.[0] ?? bough.x + j * 70, y: tip?.[1] ?? bough.y - 120 });
     });
   });
-  positions.set(researchTree.id, { x: 560, y: 770 });
-  positions.set(researchTree.children![0].id, { x: 560, y: 642 });
+  positions.set(researchTree.id, { x: 800, y: 1090 });
+  positions.set(researchTree.children![0].id, { x: 800, y: 960 });
   const points: TreePoint[] = [];
   const links: TreeLink[] = [];
   function visit(node: ResearchNode, branchId?: string) {
     const branch = node.level === 2 ? node.id : branchId;
     const position = positions.get(node.id)!;
     points.push({ id: node.id, name: node.name, kind: "research", level: node.level, ...position, anchorX: position.x, anchorY: position.y, branchId: branch });
-    (node.papers ?? []).forEach((paper, i, group) => {
-      const offset = (i - (group.length - 1) / 2);
-      const x = position.x + offset * 61;
-      const y = position.y - 72 - (1 - Math.abs(offset)) * 24;
-      points.push({ id: paper.id, name: paper.year, kind: "paper", level: 4, x, y, anchorX: x, anchorY: y, branchId: branch, paper });
-      links.push({ source: node.id, target: paper.id, level: 4 });
+    const items = [...(node.papers ?? []).map(paper => ({ paper, item: paper })), ...(node.projects ?? []).map(project => ({ project, item: project }))];
+    items.forEach((entry, i, group) => {
+      const offset = i - (group.length - 1) / 2;
+      const x = position.x + offset * 52;
+      const y = position.y - 84 - Math.max(0, 1.5 - Math.abs(offset)) * 21;
+      const isPaper = "paper" in entry;
+      points.push({ id: entry.item.id, name: isPaper ? entry.item.year : "", kind: isPaper ? "paper" : "project", level: 4, x, y, anchorX: x, anchorY: y, branchId: branch, ...(isPaper ? { paper: entry.paper } : { project: entry.project }) });
+      links.push({ source: node.id, target: entry.item.id, level: 4 });
     });
     (node.children ?? []).forEach(child => {
       links.push({ source: node.id, target: child.id, level: child.level });
@@ -69,7 +72,7 @@ export function tendrilPath(source: Pick<TreePoint, "x" | "y">, target: Pick<Tre
 export function ancestorIds(id: string): Set<string> {
   const result = new Set<string>([id]);
   function visit(node: ResearchNode): boolean {
-    const found = node.id === id || Boolean(node.papers?.some(paper => paper.id === id)) || Boolean(node.children?.some(visit));
+    const found = node.id === id || Boolean([...(node.papers ?? []), ...(node.projects ?? [])].some(entry => entry.id === id)) || Boolean(node.children?.some(visit));
     if (found) result.add(node.id);
     return found;
   }

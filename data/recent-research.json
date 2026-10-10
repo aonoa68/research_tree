@@ -1,0 +1,321 @@
+{
+  "updatedAt": "2026-10-11",
+  "patches": [
+    {
+      "parentId": "root-1",
+      "children": [
+        {
+          "id": "root-1-6",
+          "name": "場所・感情",
+          "description": "文化進化とニッチ構築の視点から、場所・環境と感情の関係を記述する。",
+          "level": 2,
+          "children": [
+            {
+              "id": "root-1-6-1",
+              "name": "感情地図",
+              "description": "場所の記述、空間的な配置、そこで生じる感情を結びつけて調べる。",
+              "level": 3,
+              "papers": [
+                {
+                  "id": "place-map-2025",
+                  "title": "場所の感情地図－テキスト埋め込みと空間的近接性による環境段階モデルの検証－",
+                  "journal": "地理情報システム学会 第34回学術研究発表大会",
+                  "year": "2025",
+                  "details": "小野原彩香・大内啓樹。大会予稿・発表。",
+                  "url": "https://portal.rikkyo.ac.jp/sites/default/files/pages/csi/about/report/TheJournalOfStatisticsForSociety_012.pdf",
+                  "publicationType": "学会発表"
+                }
+              ],
+              "projects": [
+                {
+                  "id": "project-place-data",
+                  "title": "Place × Emotion：データ基盤",
+                  "year": "2026",
+                  "period": "2026",
+                  "description": "場所と感情の対応を記述し、後続の分析に利用できるデータ基盤を整える。",
+                  "methods": "場所・感情データの整備、データ記述、再現可能な分析。",
+                  "url": "https://aonoa68.github.io/projects/",
+                  "status": "ongoing",
+                  "stage": "データ整備・研究進行中"
+                },
+                {
+                  "id": "project-emotion-selection",
+                  "title": "感情の選択率と条件付き強度",
+                  "year": "2026",
+                  "period": "2026",
+                  "description": "感情が選ばれる確率と、選ばれた場合の強度を分けて、環境段階との関連を検討する。",
+                  "methods": "選択率と条件付き強度の分離、反復測定を考慮した統計分析。",
+                  "url": "https://aonoa68.github.io/projects/",
+                  "status": "ongoing",
+                  "stage": "分析・原稿作成"
+                },
+                {
+                  "id": "project-place-ema",
+                  "title": "日常の場所・音声・感情",
+                  "year": "2026",
+                  "period": "2024–2027",
+                  "description": "日常生活の場所と感情の関連を、音声も含めた反復記録から検討する。",
+                  "methods": "スマートフォンによる経験サンプリング（EMA）、場所・感情・発話の記録。",
+                  "url": "https://kaken.nii.ac.jp/ja/grant/KAKENHI-PROJECT-24K16071/",
+                  "status": "ongoing",
+                  "stage": "アプリ開発・調査準備"
+                }
+              ]
+            },
+            {
+              "id": "root-1-6-2",
+              "name": "ニッチ構築・GAN",
+              "description": "文化的な環境と感情の関係を、条件付き生成モデルで表現する。",
+              "level": 3,
+              "papers": [
+                {
+                  "id": "gan-wctp-2026",
+                  "title": "GAN-Based Modeling of Emotional Dynamics in Cultural Evolution and Niche Construction: An Integrated Empirical Approach",
+                  "journal": "Proceedings of the Workshop on Computation: Theory and Practice (WCTP 2025)",
+                  "year": "2026",
+                  "details": "Ayaka Onohara, Hiroki Ouchi. Vol. 24, pp. 499–519. 2025年の会議発表を2026年に刊行。",
+                  "url": "https://doi.org/10.2991/978-94-6239-638-8_25",
+                  "publicationType": "国際会議論文"
+                }
+              ],
+              "projects": [
+                {
+                  "id": "project-emotion-robustness",
+                  "title": "情動適応指標の同定可能性と頑健性",
+                  "year": "2026",
+                  "period": "2026",
+                  "description": "重み付きの情動適応指標が、評価の重みやモデル設定によってどの程度変わるかを調べる。",
+                  "methods": "重み感度分析、指標の同定可能性・頑健性の検討。",
+                  "url": "https://aonoa68.github.io/projects/",
+                  "status": "ongoing",
+                  "stage": "分析・原稿作成"
+                }
+              ]
+            },
+            {
+              "id": "root-1-6-3",
+              "name": "街路景観・感情",
+              "description": "街路画像への感情評価を通じて、場所と画像の特徴をどう区別できるかを検討する。",
+              "level": 3,
+              "projects": [
+                {
+                  "id": "project-mapillary",
+                  "title": "Mapping Place, or Mapping Pictures? A Mapillary Pilot of Urban Streetscape Affect",
+                  "year": "2026",
+                  "period": "2026",
+                  "description": "Mapillaryの街路画像に対する印象・感情評価から、都市景観と感情の関連を調べる。",
+                  "methods": "街路画像のオンライン評価、空間情報と感情データの統合。",
+                  "url": "https://aonoa68.github.io/projects/",
+                  "status": "ongoing",
+                  "stage": "分析・原稿作成"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-2",
+      "children": [
+        {
+          "id": "root-1-2-4",
+          "name": "歴史景観",
+          "description": "人間の生産活動と土地利用の歴史を、地理空間データから検討する。",
+          "level": 3,
+          "papers": [
+            {
+              "id": "tatara-isprs-2026",
+              "title": "Examining the Relationship Between Tatara Iron Production and Grassland Distribution in Western Japan: An Open Geospatial Approach to Historical Landscape Analysis",
+              "journal": "The International Archives of the Photogrammetry, Remote Sensing and Spatial Information Sciences",
+              "year": "2026",
+              "details": "Ayaka Onohara, Takatora Bito, Nobusuke Iwasaki. L-4/W1-2026, pp. 205–211.",
+              "url": "https://doi.org/10.5194/isprs-archives-L-4-W1-2026-205-2026",
+              "publicationType": "国際会議論文"
+            }
+          ]
+        },
+        {
+          "id": "root-1-2-5",
+          "name": "地理空間AI",
+          "description": "大規模言語モデルが地理空間処理を支援できる範囲と、その誤りを検証する。",
+          "level": 3,
+          "papers": [
+            {
+              "id": "llm-cli-foss4g-2025",
+              "title": "Evaluating LLMs as Intermediaries for FOSS4G CLI-based Geospatial Analysis",
+              "journal": "FOSS4G 2025",
+              "year": "2025",
+              "details": "岩崎亘典氏との共同研究。2025年11月19日発表。",
+              "url": "https://aonoa68.github.io/",
+              "publicationType": "学会発表"
+            },
+            {
+              "id": "llm-geography-2026",
+              "title": "大規模言語モデルの地理的ドメイン知識とハルシネーションの予備的評価",
+              "journal": "日本地理学会2026年春季学術大会",
+              "year": "2026",
+              "details": "岩崎亘典氏との共同研究。2026年3月26日発表。",
+              "url": "https://aonoa68.github.io/",
+              "publicationType": "学会発表"
+            }
+          ],
+          "projects": [
+            {
+              "id": "project-geospatial-llm",
+              "title": "CLIツールを利用した地理空間情報活用のための大規模言語モデル最適化手法の開発",
+              "year": "2026",
+              "period": "2025–2028",
+              "description": "地理空間情報を扱うCLIツールと大規模言語モデルを結びつけ、処理の実行可能性と正確さを検証する。",
+              "methods": "CLIコマンドの実行評価、地理的知識と誤りの検証。研究分担者として参画。",
+              "url": "https://kaken.nii.ac.jp/ja/grant/KAKENHI-PROJECT-25K21880/",
+              "status": "ongoing",
+              "stage": "研究進行中"
+            }
+          ]
+        },
+        {
+          "id": "root-1-2-6",
+          "name": "デジタルツイン",
+          "description": "空間情報の可視化・実装を、教育や研究で使えるデジタルな環境へ展開する。",
+          "level": 3,
+          "projects": [
+            {
+              "id": "project-campus-twin",
+              "title": "Hackable Campus：新校舎デジタルツイン",
+              "year": "2026",
+              "period": "2026",
+              "description": "学生がコードで拡張できる新校舎のデジタルツインを開発し、教育・研究での活用を検討する。",
+              "methods": "建物・空間データの統合、Webによる3D可視化、拡張可能な学習環境の開発。",
+              "url": "https://aonoa68.github.io/projects/",
+              "status": "ongoing",
+              "stage": "開発中"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-2-3",
+      "papers": [
+        {
+          "id": "airm-2026",
+          "title": "内なる他者との対話：生成AIを用いた統計演習における学習支援の実践報告―AI支援型リフレクションモデルによるメタ認知と学習感情の変容―",
+          "journal": "リメディアル教育研究",
+          "year": "2026",
+          "details": "小野原彩香。2026年4月1日早期公開。実践報告。",
+          "url": "https://doi.org/10.18950/jade.2026.03.10.01",
+          "publicationType": "実践報告"
+        },
+        {
+          "id": "ds-seminar-2026",
+          "title": "女子高校生対象データサイエンス教育―文京学院大学女子高等学校セミナー実践報告―",
+          "journal": "社会と統計",
+          "year": "2026",
+          "details": "小野原彩香。第12号、pp. 35–46。研究ノート。",
+          "url": "https://portal.rikkyo.ac.jp/sites/default/files/pages/csi/about/report/TheJournalOfStatisticsForSociety_012.pdf",
+          "publicationType": "研究ノート"
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-1",
+      "children": [
+        {
+          "id": "root-1-1-4",
+          "name": "音声・協力",
+          "description": "アクセントを音響的・社会的な信号として捉え、その分類と協力行動との関連を検討する。",
+          "level": 3,
+          "projects": [
+            {
+              "id": "project-accent-classification",
+              "title": "アクセント自動分類",
+              "year": "2026",
+              "period": "2026",
+              "description": "日本語アクセントの特徴を音声データから捉え、自動的な分類の方法を検討する。",
+              "methods": "音声特徴の分析、計算的分類。",
+              "url": "https://aonoa68.github.io/projects/",
+              "status": "ongoing",
+              "stage": "分析・原稿作成"
+            },
+            {
+              "id": "project-accent-cooperation",
+              "title": "アクセントと協力ゲームの関係",
+              "year": "2026",
+              "period": "2026",
+              "description": "アクセントの違いと、他者との協力行動の関係を調べる。",
+              "methods": "音声・アクセントの比較、協力ゲーム。",
+              "url": "https://aonoa68.github.io/projects/",
+              "status": "ongoing",
+              "stage": "分析・原稿作成"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-1-1",
+      "projects": [
+        {
+          "id": "project-mainland-okinawa",
+          "title": "本土・沖縄アクセント系統",
+          "year": "2026",
+          "period": "2026",
+          "description": "本土と沖縄のアクセントを対象に、系統関係と変化の過程を検討する。",
+          "methods": "アクセントの比較、系統解析。",
+          "url": "https://aonoa68.github.io/projects/",
+          "status": "ongoing",
+          "stage": "分析・原稿作成"
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-1-2",
+      "projects": [
+        {
+          "id": "project-accent-gis",
+          "title": "全国アクセントGISデータ",
+          "year": "2026",
+          "period": "2026",
+          "description": "アクセントの地理的分布を、比較・解析に利用できるデータとして整備する。",
+          "methods": "全国アクセント資料の整理、GISデータ整備。",
+          "url": "https://aonoa68.github.io/projects/",
+          "status": "ongoing",
+          "stage": "データ整備中"
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-3",
+      "projects": [
+        {
+          "id": "project-emotion-action-phylogeny",
+          "title": "情動表現と行動表現の系統シグナル",
+          "year": "2026",
+          "period": "2026",
+          "description": "情動を表す語と行動を表す語で、系統的な構造がどう異なるかを比較する。",
+          "methods": "語彙の比較、系統シグナルの分析。",
+          "url": "https://aonoa68.github.io/projects/",
+          "status": "ongoing",
+          "stage": "分析・原稿作成"
+        }
+      ]
+    },
+    {
+      "parentId": "root-1-5",
+      "projects": [
+        {
+          "id": "project-lexical-gain-loss",
+          "title": "方言語彙の獲得・消失と地理・社会要因",
+          "year": "2026",
+          "period": "2026",
+          "description": "方言語彙の獲得や消失が、集団や地理的条件とどう関係するかを調べる。",
+          "methods": "方言語彙データと地理・社会要因の比較分析。",
+          "url": "https://aonoa68.github.io/projects/",
+          "status": "ongoing",
+          "stage": "分析・原稿作成"
+        }
+      ]
+    }
+  ]
+}

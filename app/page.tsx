@@ -1,5 +1,5 @@
 import { ResearchExplorer } from "@/components/research-explorer";
-import { coverage, papers, timeline } from "@/lib/research";
+import { coverage, papers, projects, timeline, updatedAt } from "@/lib/research";
 
 export default function Home() {
   return <>
@@ -12,7 +12,7 @@ export default function Home() {
       <ResearchExplorer/>
       <section className="about-section content-width" id="about" aria-labelledby="about-title">
         <div className="section-title"><span className="eyebrow">ABOUT THE TREE</span><h2 id="about-title">ひとつの根から、<br/>いくつもの問いへ。</h2></div>
-        <div className="about-copy"><p>言語は、どのように変わるのか。<br/>文化は、どのように伝わるのか。</p><p>文化進化理論を幹に、言語進化、空間分析、文化の多様性へ。研究テーマのつながりと、一つひとつの論文・発表を、一本の樹に重ねています。</p><dl className="tree-key"><div><dt>根</dt><dd>研究者</dd></div><div><dt>幹</dt><dd>文化進化理論</dd></div><div><dt>枝</dt><dd>研究テーマ</dd></div><div><dt>葉</dt><dd>論文・発表</dd></div></dl><details><summary>着想と収録データ</summary><p>クリムトの「生命の樹」、『夜の木』、『モチモチの木』に着想を得た、元サイトの樹のモチーフを引き継いでいます。</p><p>収録範囲は{coverage.from}–{coverage.to}年、元サイト掲載の論文・発表{papers.length}件です。枝の長さや距離は、統計的な系統関係を示しません。</p></details></div>
+        <div className="about-copy"><p>言語は、どのように変わるのか。<br/>文化は、どのように伝わるのか。</p><p>文化進化理論を幹に、言語進化、空間分析、場所と感情へ。研究テーマのつながりと、論文・発表、いま進めている研究を、一本の樹に重ねています。</p><dl className="tree-key"><div><dt>根</dt><dd>研究者</dd></div><div><dt>幹</dt><dd>文化進化理論</dd></div><div><dt>枝</dt><dd>研究テーマ</dd></div><div><dt>葉・芽</dt><dd>成果・進行中研究</dd></div></dl><details><summary>着想と収録データ</summary><p>クリムトの「生命の樹」、『夜の木』、『モチモチの木』に着想を得た、元サイトの樹のモチーフを引き継いでいます。</p><p>{coverage.from}–{coverage.to}年の論文・発表{papers.length}件と、進行中研究{projects.length}件を収録。2025年以降の追加業績には原典・発表情報へのリンクを付けています。進行中研究の確認日は{updatedAt}です。枝の長さや距離は、統計的な系統関係を示しません。</p></details></div>
       </section>
       <section className="timeline-section content-width" id="timeline" aria-labelledby="timeline-title"><div className="section-title"><span className="eyebrow">RESEARCH TRAJECTORY</span><h2 id="timeline-title">研究の歩み</h2></div><ol className="timeline">{timeline.map(item => <li key={item.year}><span className="timeline-year">{item.year}</span><div><h3>{item.title}</h3><p>{item.text}</p></div></li>)}</ol></section>
     </main>
