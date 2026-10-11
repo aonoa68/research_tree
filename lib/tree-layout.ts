@@ -5,11 +5,35 @@ export interface TreePoint {
   x: number; y: number; anchorX: number; anchorY: number;
   branchId?: string; paper?: Paper; project?: Project;
 }
-export interface TreeLink { source: string; target: string; level: number }
+export interface TreeLink { source: string; target: string; level: number; trunkOffset?: number }
 export const width = 1600;
 export const height = 1180;
 
-// Deliberate, asymmetric boughs; the coordinates carry no statistical meaning.
+// Branch tips retain the botanical composition; only trunk departure order encodes time.
+// Each dated publication/ presentation has equal weight, including nested topics.
+export function meanPublicationYear(node: ResearchNode): number | null {
+  const years = new Map<string, number>();
+  function collect(current: ResearchNode) {
+    current.papers?.forEach(paper => {
+      if (/^\d{4}$/.test(paper.year)) years.set(paper.id, Number(paper.year));
+    });
+    current.children?.forEach(collect);
+  }
+  collect(node);
+  return years.size ? [...years.values()].reduce((a, b) => a + b, 0) / years.size : null;
+}
+export function chronologicalBranches(nodes: ResearchNode[]): ResearchNode[] {
+  // Stable tie order; undated branches follow dated branches without an invented year.
+  return [...nodes].sort((a, b) => (meanPublicationYear(a) ?? Infinity) - (meanPublicationYear(b) ?? Infinity));
+}
+export const branchChronology = chronologicalBranches(branches).map((branch, index) => ({
+  id: branch.id, meanYear: meanPublicationYear(branch), order: index + 1,
+  trunkOffset: 25 + index * 40,
+}));
+export const trunkRise = Math.max(...branchChronology.map(branch => branch.trunkOffset));
+export function branchDeparture(link: TreeLink, source: Pick<TreePoint, "x" | "y">) {
+  return { x: source.x, y: source.y - (link.trunkOffset ?? 0) };
+}
 const boughs = [
   { x: 350, y: 790, tips: [[165, 595], [290, 380], [415, 170], [150, 810]] },
   { x: 1220, y: 880, tips: [[1230, 170], [1390, 335], [1440, 555], [1110, 460], [1240, 700], [1470, 835]] },
@@ -47,7 +71,7 @@ export function createLayout(): { points: TreePoint[]; links: TreeLink[] } {
       links.push({ source: node.id, target: entry.item.id, level: 4 });
     });
     (node.children ?? []).forEach(child => {
-      links.push({ source: node.id, target: child.id, level: child.level });
+      links.push({ source: node.id, target: child.id, level: child.level, ...(child.level === 2 ? { trunkOffset: branchChronology.find(branch => branch.id === child.id)!.trunkOffset } : {}) });
       visit(child, branch);
     });
   }

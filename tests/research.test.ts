@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import test from "node:test";
 import { allNodes, branches, coverage, entries, filterEntries, filterPapers, papers, projects, researchTree, type ResearchNode } from "../lib/research";
-import { ancestorIds, createLayout, height, width } from "../lib/tree-layout";
+import { ancestorIds, branchChronology, branchDeparture, meanPublicationYear, chronologicalBranches, createLayout, height, width } from "../lib/tree-layout";
 
 test("recent additions preserve every original topic, paper and relationship", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -71,4 +71,35 @@ test("every publication and project is connected once in a deterministic bounded
     assert.equal(path.size, entry.path.length + 1);
     assert.equal(first.points.find(point => point.id === entry.id)?.kind, entry.kind);
   });
+});
+
+
+test("trunk departures follow publication means from bottom to top", () => {
+  const layout = createLayout();
+  assert.deepEqual(branchChronology.map(branch => branch.id), ["root-1-4", "root-1-3", "root-1-5", "root-1-1", "root-1-2", "root-1-6"]);
+  const departures = branchChronology.map(branch => {
+    const link = layout.links.find(link => link.target === branch.id)!;
+    return branchDeparture(link, layout.points.find(point => point.id === link.source)!);
+  });
+  departures.forEach((point, i) => {
+    assert.equal(point.x, 800);
+    if (i) assert.ok(point.y < departures[i - 1].y);
+  });
+  branches.forEach(branch => {
+    const years = papers.filter(paper => paper.branchId === branch.id).map(paper => Number(paper.year));
+    assert.equal(meanPublicationYear(branch), years.reduce((a, b) => a + b, 0) / years.length);
+  });
+});
+
+test("chronology includes nested publications, excludes project years and handles missing dates", () => {
+  const paper = {id:"p",title:"",journal:"",year:"2000",details:""};
+  const child: ResearchNode = {id:"child",name:"",description:"",level:3,papers:[{...paper,id:"p2",year:"2020"}]};
+  const node: ResearchNode = {id:"a",name:"",description:"",level:2,papers:[paper],children:[child],projects:[{...projects[0],year:"2099"}]};
+  assert.equal(meanPublicationYear(node),2010);
+  const empty: ResearchNode = {...node,id:"empty",papers:[{...paper,year:""}],children:[]};
+  assert.equal(meanPublicationYear(empty),null);
+  const same = {...node,id:"b"};
+  const input = [empty,node,same];
+  assert.deepEqual(chronologicalBranches(input).map(node => node.id),["a","b","empty"]);
+  assert.equal(input[0].id,"empty");
 });
